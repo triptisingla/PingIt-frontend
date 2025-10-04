@@ -71,8 +71,9 @@ export const currentUser = (token) => async (dispatch) => {
 // search user action
 export const searchUser = (data) => async (dispatch) => {
   try {
+    console.log("In search user action, API URL: |", `${BASE_API_URL}/api/users/${data.keyword}`, "|");
     const res = await fetch(
-      `${BASE_API_URL}/api/users/search?name=${data.keyword}`,
+      `${BASE_API_URL}/api/users/${data.keyword}`,
       {
         method: "GET",
         headers: {

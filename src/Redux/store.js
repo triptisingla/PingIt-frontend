@@ -1,10 +1,13 @@
 
 import {legacy_createStore,applyMiddleware, combineReducers} from 'redux';
 import {thunk} from 'redux-thunk';
-import {AuthReducer} from './Auth/Reducer';
+import { authReducer } from "./Auth/Reducer";
+import { chatReducer } from './Chat/Reducer';
+import { messageReducer } from './Message/Reducer';
 
 const rootReducer=combineReducers({
-    auth:AuthReducer
+    auth:authReducer,
+    chat:chatReducer,
+    message:messageReducer
 });
-const store=legacy_createStore(rootReducer,applyMiddleware(thunk));
-export default store
+export const store=legacy_createStore(rootReducer,applyMiddleware(thunk));

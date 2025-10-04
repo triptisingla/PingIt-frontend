@@ -19,7 +19,8 @@ import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import CreateGroup from "./Group/CreateGroup";
 import { useDispatch, useSelector } from "react-redux";
-import { currentUser, logout } from "../Redux/Auth/Action";
+import { currentUser, logout, searchUser } from "../Redux/Auth/Action";
+import { createChat, getUsersChat } from "../Redux/Chat/Action";
 
 const HomePage = () => {
   const [querys, setQuerys] = useState("");
@@ -27,10 +28,11 @@ const HomePage = () => {
   const [currentChat, setCurrentChat] = useState(null);
   const [content, setContent] = useState("");
   const [isProfile, setIsProfile] = useState(false);
+  const [onClickSearch, setOnClickSearch] = useState(false);
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
-  const {auth}= useSelector((store)=>store);
+  const { auth, chat, message } = useSelector((store) => store);
   const dispatch = useDispatch();
   const token = localStorage.getItem("token");
 
@@ -42,10 +44,22 @@ const HomePage = () => {
     setAnchorEl(null);
   };
 
-  const handleClickOnChatCard = () => {
-    setCurrentChat(true);
+  const handleClickOnChatCard = (userId) => {
+    // setCurrentChat(true);
+    console.log("USER ID IN HOMEPAGE", userId);
+    dispatch(createChat({ data: { userId }, token }));
+    setQuerys("");
   };
-  const handleSearch = () => {};
+
+
+  const handleSearch = (keyword) => {
+    
+
+    const searchKey = keyword.trim() === "" ? "__default__" : keyword;
+    setQuerys(searchKey);
+    dispatch(searchUser({ keyword: searchKey, token }));
+  };
+
   const handleCreateNewMessage = (content) => {
     setContent(content);
   };
@@ -64,7 +78,10 @@ const HomePage = () => {
   const handleLogout = () => {
     dispatch(logout());
     // navigate("/signin");
-  }
+  };
+  useEffect(() => {
+    dispatch(getUsersChat({ token }));
+  }, [chat.createdChat, chat.createdGroup]);
   useEffect(() => {
     dispatch(currentUser(token));
   }, [token]);
@@ -73,6 +90,12 @@ const HomePage = () => {
       navigate("/signin");
     }
   }, [auth.reqUser]);
+  
+
+  const handleCurrentChat = (item) => {
+    setCurrentChat(item);
+    setQuerys("");
+  };
   return (
     <div className="relative">
       <div className="w-full py-14 bg-[#00a884]"></div>
@@ -141,7 +164,7 @@ const HomePage = () => {
                     setQuerys(e.target.value);
                     handleSearch(e.target.value);
                   }}
-                  value={querys}
+                  value={querys === "__default__" ? "" : querys}
                 />
                 <AiOutlineSearch className="absolute left-5 top-7" />
                 <div>
@@ -151,10 +174,51 @@ const HomePage = () => {
               {/* {all user} */}
               <div className="bg-white overflow-y-scroll h-[76vh] px-3">
                 {querys &&
-                  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1].map((item) => (
-                    <div onClick={handleClickOnChatCard}>
+                  auth.searchUser?.map((item) => (
+                    <div onClick={() => handleClickOnChatCard(item.id)}>
+                      {" "}
                       <hr />
-                      <ChatCard />
+                      <ChatCard
+                        name={item.full_name}
+                        userImg={
+                          item.profile_picture ||
+                          "https://cdn.pixabay.com/photo/2023/02/18/11/00/icon-7797704_1280.png"
+                        }
+                      />{" "}
+                    </div>
+                  ))}
+
+                {chat.chats.length > 0 &&
+                  !querys &&
+                  chat.chats?.map((item) => (
+                    <div onClick={() => handleCurrentChat(item)}>
+                      {" "}
+                      <hr />
+                      {item.is_group ? (
+                        <ChatCard
+                          name={item.chat_name}
+                          userImg={
+                            item.chat_image ||
+                            "https://cdn.pixabay.com/photo/2017/11/10/05/46/group-2935521_1280.png"
+                          }
+                        />
+                      ) : (
+                        <ChatCard
+                          isChat={true}
+                          name={
+                            auth.reqUser.id === item.users[0].id
+                              ? item.users[1].full_name
+                              : item.users[0].full_name
+                          }
+                          userImg={
+                            auth.reqUser.id === item.users[0].id
+                              ? item.users[1].profile_picture ||
+                                "https://cdn.pixabay.com/photo/2023/02/18/11/00/icon-7797704_1280.png"
+                              : item.users[0].profile_picture ||
+                                "https://cdn.pixabay.com/photo/2023/02/18/11/00/icon-7797704_1280.png"
+                          }
+                        />
+                      )}{" "}
                     </div>
                   ))}
               </div>
@@ -187,11 +251,26 @@ const HomePage = () => {
               <div className="flex justify-between">
                 <div className="flex p-3 space-x-4 items-center">
                   <img
-                    src="https://cdn.pixabay.com/photo/2025/09/05/18/50/cow-9817881_640.jpg"
+                    src={
+                      currentChat.is_group
+                        ? currentChat.chat_image ||
+                          "https://cdn.pixabay.com/photo/2017/11/10/05/46/group-2935521_1280.png"
+                        : auth.reqUser.id === currentChat.users[0].id
+                        ? currentChat.users[1].profile_picture ||
+                          "https://cdn.pixabay.com/photo/2023/02/18/11/00/icon-7797704_1280.png"
+                        : currentChat.users[0].profile_picture ||
+                          "https://cdn.pixabay.com/photo/2023/02/18/11/00/icon-7797704_1280.png"
+                    }
                     alt=""
                     className="w-10 h-10 rounded-full"
                   />
-                  <p>username</p>
+                  <p>
+                    {currentChat.is_group
+                      ? currentChat.chat_name
+                      : auth.reqUser?.id === currentChat.users[0].id
+                      ? currentChat.users[1].full_name
+                      : currentChat.users[0].full_name}
+                  </p>
                 </div>
                 <div className="p-3 flex space-x-4 items-center">
                   <AiOutlineSearch />

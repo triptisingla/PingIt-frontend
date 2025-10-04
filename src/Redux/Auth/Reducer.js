@@ -6,7 +6,7 @@ const initialValue = {
   updateUser: null
 };
 
-export const AuthReducer = (store = initialValue, { type, payload }) => {
+export const authReducer = (store = initialValue, { type, payload }) => {
   switch (type) {
     case "REGISTER":
       return { ...store, signup: payload };
