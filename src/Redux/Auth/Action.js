@@ -71,17 +71,18 @@ export const currentUser = (token) => async (dispatch) => {
 // search user action
 export const searchUser = (data) => async (dispatch) => {
   try {
-    console.log("In search user action, API URL: |", `${BASE_API_URL}/api/users/${data.keyword}`, "|");
-    const res = await fetch(
+    console.log(
+      "In search user action, API URL: |",
       `${BASE_API_URL}/api/users/${data.keyword}`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${data.token}`,
-        },
-      }
+      "|"
     );
+    const res = await fetch(`${BASE_API_URL}/api/users/${data.keyword}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${data.token}`,
+      },
+    });
     const result = await res.json();
     console.log("SEARCH_USER : ", result);
     dispatch({ type: SEARCH_USER, payload: result });
@@ -92,13 +93,26 @@ export const searchUser = (data) => async (dispatch) => {
 
 export const updateUser = (data) => async (dispatch) => {
   try {
-    const res = await fetch(`${BASE_API_URL}/api/users/update/${data.id}`, {
-      method: "GET",
+    console.log("data in update user action", data.data);
+    console.log("Sending request body:", JSON.stringify(data.data));
+    const res = await fetch(`${BASE_API_URL}/api/users/update`, {
+      method: "PUT",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${data.token}`,
       },
+      body: JSON.stringify(data.data),
     });
+
+    console.log("Response status:", res.status);
+    console.log("Response headers:", res.headers.get("content-type"));
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.log("Error response:", errorText);
+      throw new Error(`HTTP error! status: ${res.status}`);
+    }
+
     const result = await res.json();
     console.log("UPDATE_USER : ", result);
     dispatch({ type: UPDATE_USER, payload: result });

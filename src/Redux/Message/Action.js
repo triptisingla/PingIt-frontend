@@ -1,8 +1,9 @@
 import { CREATE_NEW_MESSAGE,GET_ALL_MESSAGES } from "./ActionType";
-
+import { BASE_API_URL } from "../../config/api";
 
 export const createMessage = (messageData) => async (dispatch) => {
   try {
+    console.log("DATA IN CREATE MESSAGE ACTION", messageData);
     const response = await fetch(`${BASE_API_URL}/api/messages/create`, {
       method: "POST",
       headers: {

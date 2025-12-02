@@ -7,7 +7,7 @@ const ChatCard = ({ name,userImg }) => {
         <img
           className="rounded-full w-14 h-14 cursor-pointer"
           src={
-            userImg
+            userImg?userImg:"https://cdn.pixabay.com/photo/2023/02/18/11/00/icon-7797704_1280.png"
           }
           alt=""
         />

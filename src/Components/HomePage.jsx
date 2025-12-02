@@ -21,6 +21,7 @@ import CreateGroup from "./Group/CreateGroup";
 import { useDispatch, useSelector } from "react-redux";
 import { currentUser, logout, searchUser } from "../Redux/Auth/Action";
 import { createChat, getUsersChat } from "../Redux/Chat/Action";
+import { createMessage, getAllMessages } from "../Redux/Message/Action";
 
 const HomePage = () => {
   const [querys, setQuerys] = useState("");
@@ -61,8 +62,14 @@ const HomePage = () => {
   };
 
   const handleCreateNewMessage = (content) => {
-    setContent(content);
+    dispatch(createMessage({data:{chatId: currentChat.id, content}, token}));
   };
+
+  useEffect(() => {
+    if(currentChat?.id)
+    dispatch(getAllMessages({ chatId: currentChat.id, token }));
+  }, [currentChat,message.newMessage]);
+  
   const handleNavigate = () => {
     // navigate("/profile");
     // setIsProfile(!isProfile);
@@ -84,7 +91,7 @@ const HomePage = () => {
   }, [chat.createdChat, chat.createdGroup]);
   useEffect(() => {
     dispatch(currentUser(token));
-  }, [token]);
+  }, [token, auth.updateUser]);
   useEffect(() => {
     if (!auth.reqUser) {
       navigate("/signin");
@@ -102,7 +109,7 @@ const HomePage = () => {
       <div className="flex bg-[#f0f2f5] h-[90vh] absolute top-[5vh] left-[2vw] w-[96vw]">
         <div className="left w-[30%] bg-[#e8e9ec] h-full">
           {/* Create Group */}
-          {isGroup && <CreateGroup />}
+          {isGroup && <CreateGroup setIsGroup={setIsGroup} />}
           {/* Profile */}
           {isProfile && (
             <div className="w-full h-full">
@@ -119,7 +126,10 @@ const HomePage = () => {
                 >
                   <img
                     className="rounded-full w-10 h-10 cursor-pointer"
-                    src="https://cdn.pixabay.com/photo/2025/09/03/13/33/cat-9813484_640.jpg"
+                    src={
+                      auth.reqUser?.profile_picture ||
+                      "https://cdn.pixabay.com/photo/2023/02/18/11/00/icon-7797704_1280.png"
+                    }
                     alt=""
                   />
                   <p>{auth.reqUser?.full_name}</p>
@@ -194,7 +204,7 @@ const HomePage = () => {
                     <div onClick={() => handleCurrentChat(item)}>
                       {" "}
                       <hr />
-                      {item.is_group ? (
+                      {item.group ? (
                         <ChatCard
                           name={item.chat_name}
                           userImg={
@@ -282,14 +292,13 @@ const HomePage = () => {
             {/* message section */}
             <div className="px-10 h-[85vh] overflow-y-scroll bg-blue-100">
               <div className="space-y-1 flex flex-col justify-center border mt-20 py-2">
-                {[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1].map(
-                  (item, i) => (
+                {message.messages.length > 0 &&
+                  message.messages?.map((item, i) => (
                     <MessageCard
-                      isReqUserMessage={i % 2 === 0}
-                      content={"message"}
+                      isReqUserMessage={item.user.id === auth.reqUser.id}
+                      content={item.content}
                     />
-                  )
-                )}
+                  ))}
               </div>
             </div>
 
